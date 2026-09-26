@@ -118,7 +118,3 @@ easy-store-system/
 │   └── style.css
 └── templates/
 ```
-
-## GitHub
-
-A pasta `venv/`, arquivos `__pycache__`, arquivos `.pyc`, banco local e arquivos `.env` não devem ser enviados ao GitHub. O `.gitignore` já está configurado para ignorá-los.
