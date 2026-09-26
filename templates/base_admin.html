@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            {% block titulo %}Easy Store{% endblock %}
+        </title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body class="admin-shell">
+        <div class="app-layout">
+            <aside class="sidebar" id="sidebar">
+                <div class="brand">
+                    <div class="brand-mark">E</div>
+                    <div>
+                        <strong>Easy Store</strong>
+                        <span>Gestão inteligente</span>
+                    </div>
+                </div>
+                <div class="nav-section-title">GESTÃO</div>
+                <nav class="main-nav">
+                    <a class="nav-link {% if request.endpoint == 'inicio' %}active{% endif %}" href="{{ url_for('inicio') }}">
+                        <span class="nav-icon">⌂</span>
+                        <span>Visão geral</span>
+                    </a>
+                    {% if pode_painel %}
+                    <a class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}" href="{{ url_for('admin') }}">
+                        <span class="nav-icon">▦</span>
+                        <span>Painel</span>
+                    </a>
+                    {% endif %}
+                    {% if pode_estoque %}
+                    <a class="nav-link {% if request.endpoint == 'estoque' %}active{% endif %}" href="{{ url_for('estoque') }}">
+                        <span class="nav-icon">▤</span>
+                        <span>Estoque</span>
+                    </a>
+                    {% endif %}
+                    {% if pode_estoque %}
+                    <a class="nav-link {% if request.endpoint == 'produto' %}active{% endif %}" href="{{ url_for('produto') }}">
+                        <span class="nav-icon">＋</span>
+                        <span>Cadastrar produto</span>
+                    </a>
+                    <a class="nav-link {% if request.endpoint == 'comprar_produto' %}active{% endif %}" href="{{ url_for('comprar_produto') }}">
+                        <span class="nav-icon">↓</span>
+                        <span>Comprar produto</span>
+                    </a>
+                    {% endif %}
+                    <a class="nav-link {% if request.endpoint == 'historico' %}active{% endif %}" href="{{ url_for('historico') }}">
+                        <span class="nav-icon">◷</span>
+                        <span>Histórico</span>
+                    </a>
+                    {% if pode_historico_caixa %}
+                    <a class="nav-link {% if request.endpoint == 'historico_caixa' %}active{% endif %}" href="{{ url_for('historico_caixa') }}">
+                        <span class="nav-icon">◫</span>
+                        <span>Histórico de caixa</span>
+                    </a>
+                    {% endif %}
+                    {% if pode_ranking %}
+                    <a class="nav-link {% if request.endpoint == 'ranking_caixa' %}active{% endif %}" href="{{ url_for('ranking_caixa') }}">
+                        <span class="nav-icon">🏆</span>
+                        <span>Ranking de caixa</span>
+                    </a>
+                    {% endif %}
+                    {% if pode_despesa %}
+                    <a class="nav-link {% if request.endpoint == 'despesa' %}active{% endif %}" href="{{ url_for('despesa') }}">
+                        <span class="nav-icon">↘</span>
+                        <span>Despesas</span>
+                    </a>
+                    {% endif %}
+                    {% if pode_caixa %}
+                    <a class="nav-link {% if request.endpoint == 'caixa' %}active{% endif %}" href="{{ url_for('caixa') }}">
+                        <span class="nav-icon">$</span>
+                        <span>Caixa</span>
+                        {% if caixa_aberto %}
+                        <span class="nav-status-dot">
+                        </span>
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                </nav>
+                <div class="nav-section-title">SISTEMA</div>
+                <nav class="main-nav">
+                    {% if pode_usuarios %}
+                    <a class="nav-link {% if request.endpoint == 'usuarios_admin' %}active{% endif %}" href="{{ url_for('usuarios_admin') }}">
+                        <span class="nav-icon">◉</span>
+                        <span>Usuários</span>
+                    </a>
+                    {% endif %}
+                    <a class="nav-link" href="{{ url_for('loja') }}" target="_blank">
+                        <span class="nav-icon">↗</span>
+                        <span>Abrir loja</span>
+                    </a>
+                </nav>
+                <div class="sidebar-spacer">
+                </div>
+                <div class="sidebar-footer">
+                    <div class="status-dot">
+                    </div>
+                    <div>
+                        <strong>{{ cargo_label or 'Sistema' }}</strong>
+                        <span>{{ usuario_logado.nome if usuario_logado else 'Operação normal' }}</span>
+                    </div>
+                </div>
+                <a class="logout-link" href="{{ url_for('logout') }}">
+                    <span>⇥</span> Sair</a>
+            </aside>
+            <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()">
+            </div>
+            <main class="main-content">
+                <header class="topbar">
+                    <div class="topbar-left">
+                        <button class="icon-button menu-toggle" type="button" onclick="toggleSidebar()" aria-label="Abrir menu">☰</button>
+                        <div>
+                            <div class="eyebrow">EASY STORE / {{ self.titulo() }}</div>
+                            <h1>
+                                {% block pagina_titulo %}Painel{% endblock %}
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="topbar-actions">
+                        <div class="date-chip">● {{ cargo_label or 'Ambiente administrativo' }}</div>
+                        {% if usuario_logado and usuario_logado.imagem %}
+                        <img class="avatar profile-avatar" src="{{ url_for('uploaded_file', filename=usuario_logado.imagem) }}" alt="Foto de {{ usuario_logado.nome }}">
+                        {% else %}
+                        <div class="avatar" title="{{ usuario_logado.nome if usuario_logado else 'Usuário' }}">{{ (usuario_logado.nome[:1] if usuario_logado else 'U')|upper }}</div>
+                        {% endif %}
+                    </div>
+                </header>
+                <section class="page-content">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="flash-stack">
+                        {% for msg in messages %}
+                        <div class="flash modern-flash">
+                            <span class="flash-dot">
+                            </span>{{ msg }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    {% block conteudo %}{% endblock %}
+                </section>
+            </main>
+        </div>
+        <script>
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('mobileOverlay').classList.toggle('open');
+}
+</script>
+        {% block scripts %}{% endblock %}
+    </body>
+</html>

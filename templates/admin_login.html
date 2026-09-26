@@ -1,0 +1,26 @@
+{% extends "base_user.html" %}
+{% block titulo %}Login · Easy Store{% endblock %}
+{% block conteudo %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="brand-mark">E</div>
+            <div>
+                <strong>Easy Store</strong>
+                <span>Área administrativa</span>
+            </div>
+        </div>
+        <span class="eyebrow">ACESSO SEGURO</span>
+        <h1>Bem-vindo de volta</h1>
+        <p>Entre com suas credenciais para acessar o painel.</p>
+        <form method="POST" class="login-form">
+            <label>Usuário</label>
+            <input type="text" name="usuario" placeholder="Seu usuário" required autofocus>
+            <label>Senha</label>
+            <input type="password" name="senha" placeholder="Sua senha" required>
+            <button type="submit" class="primary-action">Entrar no painel</button>
+        </form>
+        <a href="{{ url_for('loja') }}" class="back-link">← Voltar para a loja</a>
+    </div>
+</div>
+{% endblock %}

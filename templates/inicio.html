@@ -1,0 +1,180 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Visão geral{% endblock %}
+{% block pagina_titulo %}Visão geral{% endblock %}
+{% block conteudo %}
+<div class="hero-panel">
+    <div>
+        <span class="hero-kicker">CENTRAL DE OPERAÇÕES</span>
+        <h2>Olá, {{ usuario_logado.nome if usuario_logado else 'usuário' }}. 👋</h2>
+        <p>Você está conectado como <strong>{{ cargo_label }}</strong>. As áreas disponíveis respeitam as permissões do seu cargo.</p>
+    </div>
+    <a href="{{ url_for('produto') }}" class="primary-action">+ Cadastrar produto</a>
+</div>
+<div class="metric-grid">
+    <article class="metric-card">
+        <div class="metric-icon green">$</div>
+        <div>
+            <span class="metric-label">Caixa atual</span>
+            <strong>R$ {{ "%.2f"|format(caixa|float) }}</strong>
+            <small>Saldo acumulado de toda a loja</small>
+        </div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-icon blue">▤</div>
+        <div>
+            <span class="metric-label">Produtos</span>
+            <strong>{{ produtos|length }}</strong>
+            <small>Itens cadastrados</small>
+        </div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-icon purple">◷</div>
+        <div>
+            <span class="metric-label">Vendas</span>
+            <strong>{{ vendas|length }}</strong>
+            <small>Transações registradas</small>
+        </div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-icon orange">!</div>
+        <div>
+            <span class="metric-label">Estoque baixo</span>
+            <strong>{{ estoque_baixo }}</strong>
+            <small>Itens com até 5 unidades</small>
+        </div>
+    </article>
+</div>
+<div class="content-grid two-cols">
+    <section class="panel quick-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">ATALHOS</span>
+                <h3>Ações rápidas</h3>
+            </div>
+        </div>
+        <div class="quick-actions">
+            <a href="{{ url_for('produto') }}" class="quick-action">
+                <span>＋</span>
+                <div>
+                    <strong>Novo produto</strong>
+                    <small>Cadastre um item no sistema</small>
+                </div>
+            </a>
+            {% if pode_estoque %}
+            <a href="{{ url_for('estoque') }}" class="quick-action">
+                <span>▤</span>
+                <div>
+                    <strong>Consultar estoque</strong>
+                    <small>Veja quantidades e fornecedores</small>
+                </div>
+            </a>
+            {% endif %}
+            {% if pode_despesa %}
+            <a href="{{ url_for('despesa') }}" class="quick-action">
+                <span>↘</span>
+                <div>
+                    <strong>Registrar despesa</strong>
+                    <small>Adicione uma nova saída de caixa</small>
+                </div>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('historico') }}" class="quick-action">
+                <span>◷</span>
+                <div>
+                    <strong>Ver histórico</strong>
+                    <small>Confira vendas e despesas</small>
+                </div>
+            </a>
+            {% if pode_caixa %}
+            <a href="{{ url_for('caixa') }}" class="quick-action">
+                <span>$</span>
+                <div>
+                    <strong>Controlar caixa</strong>
+                    <small>
+                        {% if caixa_aberto %}Fechar o caixa aberto{% else %}Abrir um novo caixa{% endif %}
+                    </small>
+                </div>
+            </a>
+            {% endif %}
+            {% if pode_ranking %}
+            <a href="{{ url_for('ranking_caixa') }}" class="quick-action">
+                <span>🏆</span>
+                <div>
+                    <strong>Ranking de caixa</strong>
+                    <small>Veja o faturamento dos gestores de caixa</small>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+    </section>
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">RESUMO</span>
+                <h3>Últimas vendas</h3>
+            </div>
+            <a href="{{ url_for('historico') }}" class="text-link">Ver tudo →</a>
+        </div>
+        <div class="mini-list">
+            {% for v in vendas[:5] %}
+            <div class="mini-row">
+                <div>
+                    <strong>Venda #{{ v.id }}</strong>
+                    <small>{{ v.data.strftime("%d/%m/%Y %H:%M") }} · {{ v.pagamento }}</small>
+                </div>
+                <strong>R$ {{ "%.2f"|format(v.valor_total|float) }}</strong>
+            </div>
+            {% else %}
+            <div class="empty-state compact">
+                <span>◷</span>
+                <p>Nenhuma venda registrada.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+{% if pode_ranking %}
+<div class="panel table-panel" style="margin-top:20px;">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">GAMIFICAÇÃO</span>
+            <h3>Ranking dos Gestores de Caixa</h3>
+        </div>
+        <a href="{{ url_for('ranking_caixa') }}" class="text-link">Ver ranking completo →</a>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Posição</th>
+                    <th>Funcionário</th>
+                    <th>Caixas</th>
+                    <th>Vendas</th>
+                    <th>Faturamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in [] %}{% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="empty-state compact">
+        <p>Acesse “Ranking de caixa” para consultar a classificação por faturamento.</p>
+    </div>
+</div>
+{% endif %}
+{% if pode_caixa %}
+<div class="panel cash-banner">
+    <div>
+        <span class="eyebrow">CAIXA</span>
+        <h3>
+            {% if caixa_aberto %}Caixa aberto{% else %}Caixa fechado{% endif %}
+        </h3>
+        <p>
+            {% if caixa_aberto %}Aberto por {{ caixa_aberto.usuario_abertura.nome if caixa_aberto.usuario_abertura else 'usuário não identificado' }} em {{ caixa_aberto.aberto_em.strftime('%d/%m/%Y %H:%M:%S') }}.{% else %}Abra o caixa para permitir o registro de novas vendas.{% endif %}
+        </p>
+    </div>
+    <a class="primary-action" href="{{ url_for('caixa') }}">{{ 'Gerenciar caixa' }}</a>
+</div>
+{% endif %}

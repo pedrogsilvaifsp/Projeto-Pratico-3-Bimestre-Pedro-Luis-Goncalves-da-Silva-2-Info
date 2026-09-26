@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Configuração inicial · Easy Store</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body class="auth-shell">
+        <main class="auth-card">
+            <div class="auth-brand">
+                <div class="brand-mark">E</div>
+                <div>
+                    <strong>Easy Store</strong>
+                    <span>Configuração inicial</span>
+                </div>
+            </div>
+            <div class="page-intro">
+                <div>
+                    <span class="eyebrow">PRIMEIRO ACESSO</span>
+                    <h1>Criar Root</h1>
+                    <p>O Root é o proprietário principal da loja. Ele não pode ser criado novamente depois que já existir um Root.</p>
+                </div>
+            </div>
+            {% with messages = get_flashed_messages() %}{% if messages %}
+            <div class="flash-stack">
+                {% for msg in messages %}
+                <div class="flash modern-flash">
+                    <span class="flash-dot">
+                    </span>{{ msg }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}{% endwith %}
+            <form method="POST" enctype="multipart/form-data" class="form-panel">
+                <div class="field">
+                    <label>Nome completo</label>
+                    <input type="text" name="nome" required placeholder="Nome do proprietário">
+                </div>
+                <div class="field">
+                    <label>Usuário</label>
+                    <input type="text" name="usuario" required placeholder="usuario.root">
+                </div>
+                <div class="field">
+                    <label>Senha</label>
+                    <input type="password" name="senha" required placeholder="Crie uma senha forte">
+                </div>
+                <div class="field">
+                    <label>Imagem de perfil <span>(opcional)</span>
+                    </label>
+                    <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp">
+                </div>
+                <button type="submit" class="primary-action">Criar Root e continuar</button>
+            </form>
+        </main>
+    </body>
+</html>

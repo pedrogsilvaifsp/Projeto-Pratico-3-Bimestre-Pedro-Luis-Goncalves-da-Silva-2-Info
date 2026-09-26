@@ -1,0 +1,99 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Novo produto{% endblock %}
+{% block pagina_titulo %}Novo produto{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">CATÁLOGO</span>
+        <h2>Cadastrar produto</h2>
+        <p>Preencha as informações essenciais. O estoque continuará sendo controlado em unidades.</p>
+    </div>
+</div>
+<form method="POST" enctype="multipart/form-data" class="form-panel wide-form">
+    <div class="form-section">
+        <div class="form-section-title">
+            <span>01</span>
+            <div>
+                <h3>Informações básicas</h3>
+                <p>Identificação e preço de venda.</p>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="field full">
+                <label>Nome do produto</label>
+                <input type="text" name="nome" placeholder="Ex: Coca-Cola 350ml" required>
+            </div>
+            <div class="field">
+                <label>Código de barras</label>
+                <input type="text" name="codigo_barras" placeholder="7891234567890">
+            </div>
+            <div class="field">
+                <label>Preço de venda</label>
+                <input type="number" step="0.01" name="preco" placeholder="R$ 5,00" min="0" required>
+            </div>
+            <div class="field full">
+                <label>Descrição</label>
+                <textarea name="descricao" rows="4" placeholder="Observações sobre o produto">
+                </textarea>
+            </div>
+        </div>
+    </div>
+    <div class="form-section">
+        <div class="form-section-title">
+            <span>02</span>
+            <div>
+                <h3>Estoque e fornecedor</h3>
+                <p>Defina como o produto é comprado e a quantidade inicial.</p>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="field">
+                <label>Quantidade inicial</label>
+                <input type="number" step="1" name="quantidade" placeholder="Ex: 24" min="0" required>
+            </div>
+            <div class="field">
+                <label>Como o fornecedor cobra?</label>
+                <select name="tipo_embalagem" id="tipo_embalagem" required>
+                    <option value="unidade">Por unidade</option>
+                    <option value="fardo">Por fardo</option>
+                </select>
+            </div>
+            <div class="field" id="campo-fardo" style="display:none">
+                <label>Unidades por fardo</label>
+                <input type="number" name="unidades_por_fardo" min="1" step="1" value="1" placeholder="Ex: 12">
+            </div>
+            <div class="field">
+                <label>Como o cliente compra?</label>
+                <select name="tipo_venda" id="tipo_venda" required>
+                    <option value="unidade">Por unidade</option>
+                    <option value="fardo">Por fardo</option>
+                </select>
+                <small id="ajuda-venda">O cliente informa a quantidade em unidades.</small>
+            </div>
+            <div class="field full">
+                <label id="label-custo-fornecedor">Preço do fornecedor por unidade</label>
+                <input type="number" step="0.01" name="custo_fornecedor" placeholder="Ex: 4,50" min="0" required>
+            </div>
+        </div>
+    </div>
+    <div class="form-section">
+        <div class="form-section-title">
+            <span>03</span>
+            <div>
+                <h3>Imagem</h3>
+                <p>Uma boa foto facilita a identificação na loja.</p>
+            </div>
+        </div>
+        <div class="file-drop">
+            <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp">
+            <strong>Escolha uma imagem</strong>
+            <span>PNG, JPG, GIF ou WEBP</span>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('estoque') }}" class="secondary-action">Cancelar</a>
+        <button type="submit" class="primary-action">Cadastrar produto</button>
+    </div>
+</form>
+{% endblock %}
+{% block scripts %}<script>function atualizarCampos(){const f=document.getElementById('tipo_embalagem').value;const v=document.getElementById('tipo_venda').value;document.getElementById('campo-fardo').style.display=f==='fardo'||v==='fardo'?'block':'none';document.getElementById('label-custo-fornecedor').textContent=f==='fardo'?'Preço do fornecedor por fardo':'Preço do fornecedor por unidade';document.getElementById('ajuda-venda').textContent=v==='fardo'?'O cliente informa a quantidade em fardos.':'O cliente informa a quantidade em unidades.';}document.getElementById('tipo_embalagem').addEventListener('change',atualizarCampos);document.getElementById('tipo_venda').addEventListener('change',atualizarCampos);atualizarCampos();</script>{% endblock %}

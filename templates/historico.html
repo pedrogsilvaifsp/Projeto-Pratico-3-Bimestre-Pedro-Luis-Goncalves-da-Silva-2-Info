@@ -1,0 +1,120 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Histórico{% endblock %}
+{% block pagina_titulo %}Histórico{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">AUDITORIA</span>
+        <h2>Histórico da operação</h2>
+        <p>Consulte vendas, produtos vendidos e despesas registradas.</p>
+    </div>
+</div>
+<div class="content-grid two-cols">
+    <section class="panel table-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">VENDAS</span>
+                <h3>Últimas vendas</h3>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Pagamento</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vendas %}
+                    <tr>
+                        <td>{{ v.data.strftime("%d/%m/%Y %H:%M") }}</td>
+                        <td>
+                            <span class="status-pill neutral">{{ v.pagamento }}</span>
+                        </td>
+                        <td>
+                            <strong>R$ {{ "%.2f"|format(v.valor_total|float) }}</strong>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3">Nenhuma venda registrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="panel table-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">SAÍDAS</span>
+                <h3>Despesas</h3>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in despesas %}
+                    <tr>
+                        <td>{{ d.data.strftime("%d/%m/%Y %H:%M") }}</td>
+                        <td>{{ d.descricao }}</td>
+                        <td>
+                            <strong>R$ {{ "%.2f"|format(d.valor|float) }}</strong>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3">Nenhuma despesa registrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+<div class="panel table-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">RANKING</span>
+            <h3>Produtos vendidos</h3>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Posição</th>
+                    <th>Produto</th>
+                    <th>Quantidade vendida</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nome, quantidade in produtos_vendidos.items() %}
+                <tr>
+                    <td>
+                        <span class="rank-badge">{{ loop.index }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ nome }}</strong>
+                    </td>
+                    <td>{{ quantidade|int }} unidade(s)</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">Nenhuma venda registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

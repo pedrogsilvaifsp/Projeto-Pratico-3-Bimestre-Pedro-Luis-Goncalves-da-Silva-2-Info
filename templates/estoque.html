@@ -1,0 +1,99 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Estoque{% endblock %}
+{% block pagina_titulo %}Estoque{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">INVENTÁRIO</span>
+        <h2>Controle de estoque</h2>
+        <p>Acompanhe quantidades, custos e informações dos produtos cadastrados.</p>
+    </div>
+    <a href="{{ url_for('produto') }}" class="primary-action">+ Cadastrar produto</a>
+</div>
+<div class="panel table-panel">
+    <div class="toolbar">
+        <div class="search-box">
+            <span>⌕</span>
+            <input id="estoqueSearch" type="search" placeholder="Buscar produto, código ou fornecedor...">
+        </div>
+        <div class="result-count">{{ estoque|length }} produto(s)</div>
+    </div>
+    <div class="table-wrap">
+        <table id="estoqueTable">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Preço venda</th>
+                    <th>Estoque</th>
+                    <th>Fornecedor</th>
+                    <th>Descrição</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in estoque %}
+                <tr>
+                    <td>
+                        <div class="product-cell">
+                            {% if p.imagem %}
+                            <img src="{{ url_for('uploaded_file', filename=p.imagem) }}" alt="" class="thumb">
+                            {% else %}
+                            <div class="thumb placeholder">{{ p.nome[:1]|upper }}</div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ p.nome }}</strong>
+                                <span class="cell-sub">{{ p.codigo_barras or 'Sem código' }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>R$ {{ "%.2f"|format(p.preco|float) }}</strong>
+                    </td>
+                    <td>
+                        <div class="stock-value">
+                            <strong>{{ p.quantidade|int }}</strong>
+                            <span>unidades</span>
+                        </div>
+                        {% if p.quantidade|int <= 5 %}
+                        <span class="status-pill warning">Baixo</span>
+                        {% else %}
+                        <span class="status-pill success">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.tipo_embalagem == 'fardo' %}
+                        <strong>R$ {{ "%.2f"|format(p.custo_total|float) }}</strong>
+                        <span class="cell-sub">por fardo · {{ p.unidades_por_fardo }} un.</span>
+                        {% else %}
+                        <strong>R$ {{ "%.2f"|format(p.custo_total|float) }}</strong>
+                        <span class="cell-sub">por unidade</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ p.descricao or '—' }}</td>
+                    <td>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                            <a href="{{ url_for('comprar_produto', codigo_barras=p.codigo_barras or '') }}" class="primary-action">Comprar</a>
+                            <form method="POST" action="{{ url_for('remover_produto', id=p.id) }}" onsubmit="return confirm('Tem certeza que deseja remover este produto?');">
+                                <button type="submit" class="danger-button">Remover</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <span>▤</span>
+                            <h3>Estoque vazio</h3>
+                            <p>Cadastre seu primeiro produto para começar.</p>
+                            <a href="{{ url_for('produto') }}" class="secondary-action">Cadastrar agora</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>const search=document.getElementById('estoqueSearch'); const rows=[...document.querySelectorAll('#estoqueTable tbody tr')]; search?.addEventListener('input',()=>{const q=search.value.toLowerCase().trim();rows.forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none');});</script>{% endblock %}

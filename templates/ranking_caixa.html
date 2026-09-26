@@ -1,0 +1,74 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Ranking de Caixa{% endblock %}
+{% block pagina_titulo %}Ranking de Caixa{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">GAMIFICAÇÃO</span>
+        <h2>Ranking dos Gestores de Caixa</h2>
+        <p>O faturamento é atribuído ao Gestor de Caixa que abriu cada sessão. Outros cargos não participam da classificação.</p>
+    </div>
+</div>
+{% if ranking %}
+<div class="metric-grid three-cols">
+    {% for item in ranking[:3] %}
+    <article class="metric-card compact ranking-card ranking-pos-{{ item.posicao }}">
+        <div class="metric-icon">
+            {% if item.posicao == 1 %}🥇{% elif item.posicao == 2 %}🥈{% else %}🥉{% endif %}
+        </div>
+        <div>
+            <span class="metric-label">{{ item.posicao }}º lugar</span>
+            <strong>{{ item.usuario.nome }}</strong>
+            <small>R$ {{ "%.2f"|format(item.faturamento|float) }} em faturamento</small>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+<div class="panel table-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">CLASSIFICAÇÃO</span>
+            <h3>Faturamento por gestor</h3>
+        </div>
+        <span class="result-count">{{ ranking|length }} gestor(es)</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Posição</th>
+                    <th>Gestor de Caixa</th>
+                    <th>Caixas abertos</th>
+                    <th>Vendas</th>
+                    <th>Faturamento gerado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ranking %}
+                <tr>
+                    <td>
+                        <strong>{{ item.posicao }}º</strong>
+                    </td>
+                    <td>
+                        <strong>{{ item.usuario.nome }}</strong>
+                        <span class="cell-sub">{{ item.usuario.usuario }}</span>
+                    </td>
+                    <td>{{ item.caixas }}</td>
+                    <td>{{ item.vendas }}</td>
+                    <td>
+                        <strong>R$ {{ "%.2f"|format(item.faturamento|float) }}</strong>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="panel empty-state">
+    <span>🏆</span>
+    <h3>Ainda não há faturamento no ranking</h3>
+    <p>O ranking será preenchido quando um Gestor de Caixa abrir um caixa e vendas forem registradas nessa sessão.</p>
+</div>
+{% endif %}
+{% endblock %}

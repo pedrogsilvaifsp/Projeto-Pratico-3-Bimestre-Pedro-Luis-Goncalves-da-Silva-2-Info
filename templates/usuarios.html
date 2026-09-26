@@ -1,0 +1,101 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Usuários{% endblock %}
+{% block pagina_titulo %}Usuários{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">ACESSO</span>
+        <h2>Equipe e usuários</h2>
+        <p>Cadastre os três cargos operacionais. O Root é único e não pode ser criado nesta tela.</p>
+    </div>
+</div>
+<div class="content-grid two-cols-wide users-layout">
+    <section class="form-panel">
+        <div class="form-section">
+            <div class="form-section-title">
+                <span>01</span>
+                <div>
+                    <h3>Novo usuário</h3>
+                    <p>Crie uma conta administrativa com permissões específicas.</p>
+                </div>
+            </div>
+            <form method="POST" enctype="multipart/form-data" class="nested-form">
+                <div class="field">
+                    <label>Nome</label>
+                    <input type="text" name="nome" placeholder="Nome completo" required>
+                </div>
+                <div class="field">
+                    <label>Usuário</label>
+                    <input type="text" name="usuario" placeholder="nome.usuario" required>
+                </div>
+                <div class="field">
+                    <label>Senha</label>
+                    <input type="password" name="senha" placeholder="Crie uma senha" required>
+                </div>
+                <div class="field">
+                    <label>Cargo</label>
+                    <select name="cargo" required>
+                        <option value="gerente">Gerente</option>
+                        <option value="gestor_caixa">Gestor de Caixa</option>
+                        <option value="gestor_estoque">Gestor de Estoque</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Imagem de perfil</label>
+                    <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp">
+                </div>
+                <button type="submit" class="primary-action">Adicionar usuário</button>
+            </form>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">MEMBROS</span>
+                <h3>Usuários cadastrados</h3>
+            </div>
+            <span class="result-count">{{ usuarios|length }} usuário(s)</span>
+        </div>
+        <div class="user-list">
+            {% for u in usuarios %}
+            <div class="user-row">
+                {% if u.imagem %}
+                <img src="{{ url_for('uploaded_file', filename=u.imagem) }}" alt="Foto de {{ u.nome }}" class="profile-avatar">
+                {% else %}
+                <div class="profile-avatar placeholder">{{ u.nome[:1]|upper }}</div>
+                {% endif %}
+                <div class="user-info">
+                    <strong>{{ u.nome }}</strong>
+                    <span>@{{ u.usuario }}</span>
+                    <span class="status-pill neutral">{{ roles_labels.get(u.cargo, u.cargo) }}</span>
+                </div>
+                {% if u.cargo == 'root' %}
+                <div class="root-owner-box">
+                    <span class="status-pill success">Root / Proprietário</span>
+                    {% if u.id == usuario_logado.id %}
+                    <div class="user-actions">
+                        <a href="{{ url_for('editar_usuario', id=u.id) }}" class="secondary-action">Editar</a>
+                        <form method="POST" action="{{ url_for('excluir_loja') }}" onsubmit="return confirm('ATENÇÃO! Excluir a loja apagará usuários, produtos, vendas, despesas e todo o histórico. Esta ação não pode ser desfeita. Deseja continuar?');">
+                            <button type="submit" class="ghost-danger">Excluir loja</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="user-actions">
+                    <a href="{{ url_for('editar_usuario', id=u.id) }}" class="secondary-action">Editar</a>
+                    <form method="POST" action="{{ url_for('remover_usuario', id=u.id) }}" onsubmit="return confirm('Remover este usuário?');">
+                        <button type="submit" class="ghost-danger">Remover</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Nenhum usuário cadastrado.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

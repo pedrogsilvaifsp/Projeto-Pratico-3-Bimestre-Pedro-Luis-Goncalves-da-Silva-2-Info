@@ -1,0 +1,103 @@
+{% extends "base_user.html" %}
+{% block titulo %}Loja · Easy Store{% endblock %}
+{% block conteudo %}
+<main class="store-main">
+    <section class="store-hero">
+        <div>
+            <span class="eyebrow">EASY STORE</span>
+            <h1>Produtos da loja</h1>
+            <p>Escolha seus produtos, monte o carrinho e finalize o pedido.</p>
+        </div>
+        <div class="store-badge">● Loja aberta</div>
+    </section>
+    <div class="store-layout">
+        <section>
+            <div class="section-heading store-heading">
+                <div>
+                    <span class="eyebrow">CATÁLOGO</span>
+                    <h2>Disponíveis agora</h2>
+                </div>
+                <span class="result-count">{{ produtos|length }} item(ns)</span>
+            </div>
+            <div class="produtos">
+                {% for p in produtos %}{% if p.quantidade > 0 %}
+                <article class="product-card">
+                    {% if p.imagem %}
+                    <img src="{{ url_for('uploaded_file', filename=p.imagem) }}" alt="{{ p.nome }}" class="product-image">
+                    {% else %}
+                    <div class="product-image product-placeholder">{{ p.nome[:1]|upper }}</div>
+                    {% endif %}
+                    <div class="product-card-body">
+                        <span class="product-tag">
+                            {% if p.tipo_venda == 'fardo' %}Venda por fardo{% else %}Venda por unidade{% endif %}
+                        </span>
+                        <h3>{{ p.nome }}</h3>
+                        <strong class="product-price">R$ {{ "%.2f"|format(p.preco|float) }}</strong>
+                        <span class="product-stock">{{ p.quantidade|int }} unidade(s) em estoque</span>
+                        {% if p.descricao %}
+                        <p>{{ p.descricao }}</p>
+                        {% endif %}
+                        <form action="{{ url_for('add_carrinho') }}" method="POST" class="product-buy-form">
+                            <input type="hidden" name="produto_id" value="{{ p.id }}">
+                            {% if p.tipo_venda == 'fardo' %}
+                            <label>Quantidade de fardos</label>
+                            <input type="number" name="quantidade" placeholder="Quantidade" min="1" max="{{ (p.quantidade|int // (p.unidades_por_fardo|int)) }}" required>
+                            <small>1 fardo = {{ p.unidades_por_fardo }} unidade(s)</small>
+                            {% else %}
+                            <label>Quantidade de unidades</label>
+                            <input type="number" name="quantidade" placeholder="Quantidade" min="1" max="{{ p.quantidade|int }}" required>
+                            {% endif %}
+                            <button type="submit" class="primary-action">Adicionar ao carrinho</button>
+                        </form>
+                    </div>
+                </article>
+                {% endif %}{% else %}
+                <div class="empty-state">
+                    <span>◫</span>
+                    <h3>Nenhum produto disponível</h3>
+                    <p>Cadastre produtos na área administrativa.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        <aside class="cart-panel">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">PEDIDO</span>
+                    <h2>Seu carrinho</h2>
+                </div>
+                <span class="cart-count">{{ carrinho|length }}</span>
+            </div>
+            {% if carrinho %}
+            <div class="cart-list">
+                {% for item in carrinho %}{% set produto = namespace(obj=None) %}{% for p in produtos %}{% if p.id == item.produto_id %}{% set produto.obj = p %}{% endif %}{% endfor %}
+                <div class="cart-item">
+                    <div>
+                        <strong>{{ item.produto_id|produto_nome }}</strong>
+                        <small>
+                            {% if produto.obj and produto.obj.tipo_venda == 'fardo' %}{{ item.quantidade_venda }} fardo(s) · {{ item.quantidade_unidades }} un.{% else %}{{ item.quantidade_venda }} un.{% endif %}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <form action="{{ url_for('finalizar') }}" method="POST" class="checkout-form">
+                <label for="pagamento">Forma de pagamento</label>
+                <select name="pagamento" id="pagamento" required>
+                    <option value="Pix">Pix</option>
+                    <option value="Cartão">Cartão</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                </select>
+                <button type="submit" class="primary-action">Finalizar compra</button>
+            </form>
+            {% else %}
+            <div class="empty-cart">
+                <span>🛒</span>
+                <h3>Carrinho vazio</h3>
+                <p>Adicione produtos para começar.</p>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+</main>
+{% endblock %}

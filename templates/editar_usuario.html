@@ -1,0 +1,51 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Editar usuário{% endblock %}
+{% block pagina_titulo %}Editar usuário{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">ACESSO / EDIÇÃO</span>
+        <h2>Editar usuário</h2>
+        <p>Atualize os dados da conta sem criar um novo usuário.</p>
+    </div>
+</div>
+<section class="panel" style="max-width:760px;">
+    <form method="POST" enctype="multipart/form-data" class="nested-form">
+        <div class="form-grid">
+            <div class="field">
+                <label>Nome</label>
+                <input type="text" name="nome" value="{{ usuario.nome }}" required>
+            </div>
+            <div class="field">
+                <label>Usuário</label>
+                <input type="text" name="usuario" value="{{ usuario.usuario }}" required>
+            </div>
+            <div class="field">
+                <label>Nova senha</label>
+                <input type="password" name="senha" placeholder="Deixe vazio para manter a atual">
+            </div>
+            <div class="field">
+                <label>Cargo</label>
+                {% if usuario.cargo == 'root' %}
+                <input type="text" value="Root — Proprietário (fixo)" disabled>
+                <input type="hidden" name="cargo" value="root">
+                {% else %}
+                <select name="cargo" required>
+                    {% for chave, rotulo in roles_labels.items() if chave != 'root' %}
+                    <option value="{{ chave }}" {% if usuario.cargo == chave %}selected{% endif %}>{{ rotulo }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </div>
+        </div>
+        <div class="field">
+            <label>Imagem de perfil</label>
+            <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp">
+        </div>
+        <div class="form-actions">
+            <a href="{{ url_for('usuarios_admin') }}" class="secondary-action">Cancelar</a>
+            <button type="submit" class="primary-action">Salvar alterações</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

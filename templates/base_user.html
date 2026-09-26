@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            {% block titulo %}Easy Store{% endblock %}
+        </title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body class="store-shell">
+        <header class="store-topbar">
+            <div class="store-brand">
+                <div class="brand-mark">E</div>
+                <div>
+                    <strong>Easy Store</strong>
+                    <span>Mini mercado</span>
+                </div>
+            </div>
+            <div class="store-actions">
+                <a href="{{ url_for('admin_login') }}" class="store-admin-link">Área administrativa</a>
+            </div>
+        </header>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="store-flash-wrap">
+            {% for msg in messages %}
+            <div class="flash modern-flash">
+                <span class="flash-dot">
+                </span>{{ msg }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block conteudo %}{% endblock %}
+    </body>
+</html>

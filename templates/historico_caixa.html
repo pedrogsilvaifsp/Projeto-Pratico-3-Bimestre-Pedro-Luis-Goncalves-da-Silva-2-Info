@@ -1,0 +1,159 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Histórico de Caixa{% endblock %}
+{% block pagina_titulo %}Histórico de Caixa{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">AUDITORIA DE CAIXA</span>
+        <h2>Histórico de caixas</h2>
+        <p>A tabela permanece visível o tempo todo e é filtrada automaticamente enquanto você digita.</p>
+    </div>
+</div>
+<div class="panel filter-panel">
+    <div class="section-heading">
+        <div>
+            <h3>Pesquisar histórico</h3>
+            <span class="result-count" id="historicoResultado">{{ caixas|length }} registro(s) encontrado(s)</span>
+        </div>
+        <button type="button" class="secondary-action" id="limparFiltros">Limpar filtros</button>
+    </div>
+    <div class="form-grid history-filter-grid">
+        <div class="field">
+            <label for="filtroCaixa">Caixa</label>
+            <input id="filtroCaixa" type="text" placeholder="Ex.: 12" data-coluna="0" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="filtroAbertoPor">Aberto por</label>
+            <input id="filtroAbertoPor" type="text" placeholder="Nome do usuário" data-coluna="1" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="filtroDataAbertura">Data de abertura</label>
+            <input id="filtroDataAbertura" type="text" placeholder="Ex.: 15/09/2026" data-coluna="2" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="filtroFechadoPor">Fechado por</label>
+            <input id="filtroFechadoPor" type="text" placeholder="Nome do usuário" data-coluna="3" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="filtroDataFechamento">Data de fechamento</label>
+            <input id="filtroDataFechamento" type="text" placeholder="Ex.: 15/09/2026" data-coluna="4" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="filtroEntradas">Entradas</label>
+            <input id="filtroEntradas" type="text" placeholder="Ex.: 150,00" data-coluna="5" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="filtroSaidas">Saídas</label>
+            <input id="filtroSaidas" type="text" placeholder="Ex.: 50,00" data-coluna="6" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="filtroSaldo">Saldo</label>
+            <input id="filtroSaldo" type="text" placeholder="Ex.: 100,00" data-coluna="7" autocomplete="off">
+        </div>
+    </div>
+</div>
+<div class="panel table-panel">
+    <div class="table-wrap">
+        <table id="tabelaHistoricoCaixa">
+            <thead>
+                <tr>
+                    <th>Caixa</th>
+                    <th>Aberto por</th>
+                    <th>Data de abertura</th>
+                    <th>Fechado por</th>
+                    <th>Data de fechamento</th>
+                    <th>Entradas</th>
+                    <th>Saídas</th>
+                    <th>Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in caixas %}
+                {% set c = item.caixa %}
+                <tr class="historico-linha">
+                    <td data-coluna="0">
+                        <strong>#{{ c.id }}</strong>
+                        <span class="cell-sub">
+                            {% if c.fechado_em %}Fechado{% else %}Em aberto{% endif %}
+                        </span>
+                    </td>
+                    <td data-coluna="1">{{ c.usuario_abertura.nome if c.usuario_abertura else 'Não identificado' }}</td>
+                    <td data-coluna="2">{{ c.aberto_em.strftime('%d/%m/%Y %H:%M:%S') if c.aberto_em else '—' }}</td>
+                    <td data-coluna="3">{{ c.usuario_fechamento.nome if c.usuario_fechamento else '—' }}</td>
+                    <td data-coluna="4">{{ c.fechado_em.strftime('%d/%m/%Y %H:%M:%S') if c.fechado_em else 'Em aberto' }}</td>
+                    <td data-coluna="5">R$ {{ "%.2f"|format(item.entradas|float) }}</td>
+                    <td data-coluna="6">R$ {{ "%.2f"|format(item.saidas|float) }}</td>
+                    <td data-coluna="7">
+                        <strong>R$ {{ "%.2f"|format(item.saldo|float) }}</strong>
+                    </td>
+                </tr>
+                {% else %}
+                <tr id="historicoVazioInicial">
+                    <td colspan="8">Nenhum período de caixa registrado.</td>
+                </tr>
+                {% endfor %}
+                <tr id="historicoSemResultados" style="display:none">
+                    <td colspan="8">Nenhum histórico corresponde aos filtros informados.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+    const tabela = document.getElementById('tabelaHistoricoCaixa');
+    const filtros = Array.from(document.querySelectorAll('.history-filter-grid input[data-coluna]'));
+    const linhas = Array.from(tabela.querySelectorAll('tbody tr.historico-linha'));
+    const resultado = document.getElementById('historicoResultado');
+    const semResultados = document.getElementById('historicoSemResultados');
+    const limpar = document.getElementById('limparFiltros');
+
+    function normalizar(valor) {
+        return (valor || '')
+            .toString()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/r\$\s?/g, '')
+            .trim();
+    }
+
+    function aplicarFiltros() {
+        const ativos = filtros
+            .filter(input => input.value.trim() !== '')
+            .map(input => ({ coluna: Number(input.dataset.coluna), texto: normalizar(input.value) }));
+
+        let encontrados = 0;
+
+        linhas.forEach(linha => {
+            const corresponde = ativos.every(filtro => {
+                const celula = linha.querySelector(`[data-coluna="${filtro.coluna}"]`);
+                return celula && normalizar(celula.textContent).includes(filtro.texto);
+            });
+
+            linha.style.display = corresponde ? '' : 'none';
+            if (corresponde) encontrados += 1;
+        });
+
+        if (resultado) {
+            resultado.textContent = `${encontrados} registro(s) encontrado(s)`;
+        }
+        if (semResultados) {
+            semResultados.style.display = linhas.length > 0 && encontrados === 0 ? '' : 'none';
+        }
+    }
+
+    filtros.forEach(input => input.addEventListener('input', aplicarFiltros));
+
+    limpar.addEventListener('click', function () {
+        filtros.forEach(input => input.value = '');
+        aplicarFiltros();
+        filtros[0]?.focus();
+    });
+
+    aplicarFiltros();
+})();
+</script>
+{% endblock %}

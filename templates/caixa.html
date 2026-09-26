@@ -1,0 +1,135 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Caixa{% endblock %}
+{% block pagina_titulo %}Caixa{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">OPERAÇÃO</span>
+        <h2>Controle do caixa</h2>
+        <p>O saldo do caixa é acumulado de toda a loja. Abrir e fechar controla apenas a sessão operacional.</p>
+    </div>
+    {% if caixa_obj %}
+    <span class="status-pill success">Caixa aberto</span>
+    {% else %}
+    <span class="status-pill warning">Caixa fechado</span>
+    {% endif %}
+</div>
+<section class="panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">SALDO GERAL</span>
+            <h3>Caixa total da loja</h3>
+            <p>Considera todas as vendas e todas as despesas registradas, inclusive de caixas já fechados.</p>
+        </div>
+    </div>
+    <div class="metric-grid">
+        <article class="metric-card">
+            <div class="metric-icon green">↑</div>
+            <div>
+                <span class="metric-label">Todas as vendas</span>
+                <strong>R$ {{ "%.2f"|format(totais.entrada|float) }}</strong>
+            </div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon blue">↓</div>
+            <div>
+                <span class="metric-label">Todas as despesas</span>
+                <strong>R$ {{ "%.2f"|format(totais.saida|float) }}</strong>
+            </div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon green">$</div>
+            <div>
+                <span class="metric-label">Saldo em caixa</span>
+                <strong>R$ {{ "%.2f"|format(totais.saldo|float) }}</strong>
+                <small>Acumulado da loja</small>
+            </div>
+        </article>
+    </div>
+</section>
+<div class="content-grid two-cols">
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">SESSÃO</span>
+                <h3>Sessão atual</h3>
+            </div>
+        </div>
+        {% if caixa_obj %}
+        <div class="detail-grid">
+            <div>
+                <span class="metric-label">Aberto por</span>
+                <strong>{{ caixa_obj.usuario_abertura.nome if caixa_obj.usuario_abertura else 'Não identificado' }}</strong>
+            </div>
+            <div>
+                <span class="metric-label">Aberto em</span>
+                <strong>{{ caixa_obj.aberto_em.strftime('%d/%m/%Y %H:%M:%S') }}</strong>
+            </div>
+            <div>
+                <span class="metric-label">Entradas da sessão</span>
+                <strong>R$ {{ "%.2f"|format(sessao_totais.entrada|float) }}</strong>
+            </div>
+            <div>
+                <span class="metric-label">Saídas da sessão</span>
+                <strong>R$ {{ "%.2f"|format(sessao_totais.saida|float) }}</strong>
+            </div>
+        </div>
+        <div class="form-actions">
+            <form method="POST" action="{{ url_for('fechar_caixa') }}" onsubmit="return confirm('Fechar o caixa agora? O fechamento será registrado no histórico.');">
+                <button class="primary-action danger-action" type="submit">Fechar caixa</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="empty-state compact">
+            <span>◷</span>
+            <h3>Caixa fechado</h3>
+            <p>O saldo total permanece acumulado. Abra o caixa para permitir novas operações.</p>
+        </div>
+        <form method="POST" action="{{ url_for('abrir_caixa') }}" class="form-actions">
+            <button class="primary-action" type="submit">Abrir caixa</button>
+        </form>
+        {% endif %}
+    </section>
+    <section class="panel table-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">MOVIMENTAÇÕES</span>
+                <h3>Todas as movimentações registradas</h3>
+                <p class="cell-sub">As sessões são mantidas para histórico, mas não zeram o caixa total.</p>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        <th>Usuário</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in movimentacoes %}
+                    <tr>
+                        <td>{{ m.data.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                        <td>
+                            <span class="status-pill {% if m.tipo == 'entrada' %}success{% else %}warning{% endif %}">{{ m.tipo|capitalize }}</span>
+                        </td>
+                        <td>{{ m.descricao or '-' }}</td>
+                        <td>{{ m.usuario.nome if m.usuario else '-' }}</td>
+                        <td>
+                            <strong>R$ {{ "%.2f"|format(m.valor|float) }}</strong>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5">Nenhuma movimentação registrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

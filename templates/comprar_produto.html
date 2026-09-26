@@ -1,0 +1,234 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Comprar produto{% endblock %}
+{% block pagina_titulo %}Comprar produto{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">ABASTECIMENTO</span>
+        <h2>Comprar produto</h2>
+        <p>Pesquise pelo código de barras. A tabela permanece visível e é filtrada automaticamente enquanto você digita.</p>
+    </div>
+</div>
+<div class="panel filter-panel">
+    <div class="section-heading">
+        <div>
+            <h3>Localizar produto</h3>
+            <span class="result-count" id="produtoResultado">{{ produtos|length }} produto(s) encontrado(s)</span>
+        </div>
+        <button type="button" class="secondary-action" id="limparFiltroCompra">Limpar filtro</button>
+    </div>
+    <form method="GET" action="{{ url_for('comprar_produto') }}" class="form-grid purchase-search-form" id="formFiltroCompra">
+        <div class="field full">
+            <label for="filtroCodigoCompra">Código de barras</label>
+            <div style="display:flex;gap:10px;align-items:stretch">
+                <input id="filtroCodigoCompra" type="text" name="codigo_barras" value="{{ codigo_barras }}" placeholder="Digite o código de barras..." autocomplete="off" style="flex:1">
+                <button type="submit" class="primary-action">Filtrar</button>
+            </div>
+            <small>Enquanto você digita, os produtos da tabela abaixo são filtrados automaticamente.</small>
+        </div>
+    </form>
+</div>
+<div class="panel table-panel">
+    <div class="table-wrap">
+        <table id="tabelaProdutosCompra">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Código de barras</th>
+                    <th>Estoque</th>
+                    <th>Compra fornecedor</th>
+                    <th>Preço fornecedor</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in produtos %}
+                <tr class="produto-compra-linha">
+                    <td>
+                        <div class="product-cell">
+                            {% if p.imagem %}
+                            <img src="{{ url_for('uploaded_file', filename=p.imagem) }}" alt="" class="thumb">
+                            {% else %}
+                            <div class="thumb placeholder">{{ p.nome[:1]|upper }}</div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ p.nome }}</strong>
+                                <span class="cell-sub">{{ p.descricao or 'Sem descrição' }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="codigo-compra">{{ p.codigo_barras or 'Sem código' }}</td>
+                    <td>{{ p.quantidade|int }} unidade(s)</td>
+                    <td>
+                        {% if p.tipo_embalagem == 'fardo' %}Fardo · {{ p.unidades_por_fardo }} un.{% else %}Unidade{% endif %}
+                    </td>
+                    <td>R$ {{ "%.2f"|format(p.custo_total|float) }} {% if p.tipo_embalagem == 'fardo' %}
+                        <span class="cell-sub">por fardo</span>
+                        {% else %}
+                        <span class="cell-sub">por unidade</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('comprar_produto', codigo_barras=p.codigo_barras or '') }}" class="primary-action">Selecionar</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr id="produtosCompraVazioInicial">
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <span>▤</span>
+                            <h3>Nenhum produto cadastrado</h3>
+                            <p>Cadastre um produto antes de registrar uma compra.</p>
+                            <a href="{{ url_for('produto') }}" class="secondary-action">Cadastrar produto</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="produtosCompraSemResultados" style="display:none">
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <span>⌕</span>
+                            <h3>Nenhum produto encontrado</h3>
+                            <p>Nenhum código de barras corresponde ao filtro informado.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% if produto %}
+<div class="panel table-panel" style="margin-top:16px">
+    <form method="POST" action="{{ url_for('comprar_produto') }}" class="form-panel wide-form" style="margin:0;box-shadow:none;border:0">
+        <input type="hidden" name="produto_id" value="{{ produto.id }}">
+        <div class="form-section">
+            <div class="form-section-title">
+                <span>01</span>
+                <div>
+                    <h3>Produto selecionado</h3>
+                    <p>Os dados já cadastrados são carregados automaticamente.</p>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field full">
+                    <label>Nome do produto</label>
+                    <input value="{{ produto.nome }}" readonly>
+                </div>
+                <div class="field">
+                    <label>Código de barras</label>
+                    <input value="{{ produto.codigo_barras or 'Sem código' }}" readonly>
+                </div>
+                <div class="field">
+                    <label>Estoque atual</label>
+                    <input value="{{ produto.quantidade|int }} unidade(s)" readonly>
+                </div>
+                <div class="field">
+                    <label>Compra do fornecedor</label>
+                    <input value="{% if produto.tipo_embalagem == 'fardo' %}Por fardo{% else %}Por unidade{% endif %}" readonly>
+                </div>
+                <div class="field">
+                    <label>Preço cadastrado do fornecedor</label>
+                    <input value="R$ {{ '%.2f'|format(produto.custo_total|float) }} por {% if produto.tipo_embalagem == 'fardo' %}fardo{% else %}unidade{% endif %}" readonly>
+                </div>
+                {% if produto.tipo_embalagem == 'fardo' %}
+                <div class="field">
+                    <label>Unidades por fardo</label>
+                    <input value="{{ produto.unidades_por_fardo }} unidade(s)" readonly>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-section">
+            <div class="form-section-title">
+                <span>02</span>
+                <div>
+                    <h3>Quantidade da compra</h3>
+                    <p>O valor total usa o preço cadastrado do fornecedor.</p>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>
+                        {% if produto.tipo_embalagem == 'fardo' %}Quantidade de fardos{% else %}Quantidade de unidades{% endif %}
+                    </label>
+                    <input type="number" name="quantidade_compra" id="quantidadeCompra" min="1" step="1" required>
+                </div>
+                <div class="field">
+                    <label>Valor total da compra</label>
+                    <input id="valorTotalCompra" value="R$ 0,00" readonly>
+                </div>
+                <div class="field full">
+                    <div class="info-card" style="padding:14px;border-radius:12px">
+                        <strong>Como o cálculo funciona</strong>
+                        <div style="margin-top:6px">R$ {{ '%.2f'|format(produto.custo_total|float) }} × quantidade da compra = valor total.</div>
+                        {% if produto.tipo_embalagem == 'fardo' %}
+                        <small>Estoque: quantidade de fardos × {{ produto.unidades_por_fardo }} unidade(s) por fardo.</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a href="{{ url_for('comprar_produto') }}" class="secondary-action">Cancelar</a>
+            <button type="submit" class="primary-action">Registrar compra</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+    const filtro = document.getElementById('filtroCodigoCompra');
+    const tabela = document.getElementById('tabelaProdutosCompra');
+    const resultado = document.getElementById('produtoResultado');
+    const limpar = document.getElementById('limparFiltroCompra');
+    const semResultados = document.getElementById('produtosCompraSemResultados');
+    const linhas = Array.from(tabela ? tabela.querySelectorAll('tbody tr.produto-compra-linha') : []);
+
+    function normalizar(valor) {
+        return (valor || '').toString()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/\s+/g, '');
+    }
+
+    function aplicarFiltro() {
+        const busca = normalizar(filtro?.value || '');
+        let encontrados = 0;
+
+        linhas.forEach(linha => {
+            const codigo = normalizar(linha.querySelector('.codigo-compra')?.textContent || '');
+            const corresponde = !busca || codigo.includes(busca);
+            linha.style.display = corresponde ? '' : 'none';
+            if (corresponde) encontrados += 1;
+        });
+
+        if (resultado) resultado.textContent = `${encontrados} produto(s) encontrado(s)`;
+        if (semResultados) semResultados.style.display = linhas.length > 0 && encontrados === 0 ? '' : 'none';
+    }
+
+    filtro?.addEventListener('input', aplicarFiltro);
+
+    limpar?.addEventListener('click', function () {
+        if (filtro) filtro.value = '';
+        aplicarFiltro();
+        filtro?.focus();
+    });
+
+    aplicarFiltro();
+
+    const quantidade = document.getElementById('quantidadeCompra');
+    const total = document.getElementById('valorTotalCompra');
+    const preco = Number({% if produto %}{{ produto.custo_total|float }}{% else %}0{% endif %});
+    function atualizarTotal() {
+        const qtd = Number(quantidade?.value || 0);
+        const valor = preco * qtd;
+        if (total) total.value = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    quantidade?.addEventListener('input', atualizarTotal);
+    atualizarTotal();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Despesas{% endblock %}
+{% block pagina_titulo %}Despesas{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">FINANCEIRO</span>
+        <h2>Registrar despesa</h2>
+        <p>Adicione saídas de caixa de forma simples e organizada.</p>
+    </div>
+</div>
+<form method="POST" class="form-panel narrow-form">
+    <div class="form-section">
+        <div class="form-section-title">
+            <span>01</span>
+            <div>
+                <h3>Dados da despesa</h3>
+                <p>Informe a descrição e o valor da saída.</p>
+            </div>
+        </div>
+        <div class="field">
+            <label>Descrição da despesa</label>
+            <input type="text" name="descricao" placeholder="Ex: Compra de gás" required>
+        </div>
+        <div class="field">
+            <label>Valor</label>
+            <input type="number" step="0.01" name="valor" placeholder="R$ 120,00" required>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="primary-action">Registrar despesa</button>
+    </div>
+</form>
+{% endblock %}

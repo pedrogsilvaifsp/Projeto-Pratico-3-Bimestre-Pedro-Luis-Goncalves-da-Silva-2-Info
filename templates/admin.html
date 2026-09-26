@@ -1,0 +1,167 @@
+{% extends "base_admin.html" %}
+{% block titulo %}Painel{% endblock %}
+{% block pagina_titulo %}Painel{% endblock %}
+{% block conteudo %}
+<div class="page-intro">
+    <div>
+        <span class="eyebrow">MONITORAMENTO</span>
+        <h2>Performance da operação</h2>
+        <p>Indicadores de produtos, vendas e estoque em um único lugar.</p>
+    </div>
+    <a href="{{ url_for('estoque') }}" class="secondary-action">Ver estoque →</a>
+</div>
+<div class="metric-grid four-cols">
+    <article class="metric-card compact">
+        <div class="metric-icon blue">▤</div>
+        <div>
+            <span class="metric-label">Produtos</span>
+            <strong>{{ produtos|length }}</strong>
+            <small>Itens ativos</small>
+        </div>
+    </article>
+    <article class="metric-card compact">
+        <div class="metric-icon green">↗</div>
+        <div>
+            <span class="metric-label">Vendas</span>
+            <strong>{{ vendas|length }}</strong>
+            <small>Transações</small>
+        </div>
+    </article>
+    <article class="metric-card compact">
+        <div class="metric-icon purple">$</div>
+        <div>
+            <span class="metric-label">Faturamento</span>
+            <strong>R$ {{ "%.2f"|format((vendas|sum(attribute='valor_total'))|float) }}</strong>
+            <small>Total registrado</small>
+        </div>
+    </article>
+    <article class="metric-card compact">
+        <div class="metric-icon orange">!</div>
+        <div>
+            <span class="metric-label">Baixo estoque</span>
+            <strong>{{ produtos|selectattr('quantidade', 'le', 5)|list|length }}</strong>
+            <small>Até 5 unidades</small>
+        </div>
+    </article>
+</div>
+<div class="content-grid two-cols-wide">
+    <section class="panel chart-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">VENDAS</span>
+                <h3>Produtos mais vendidos</h3>
+            </div>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="graficoProdutos">
+            </canvas>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">ESTOQUE</span>
+                <h3>Itens cadastrados</h3>
+            </div>
+        </div>
+        <div class="mini-list">
+            {% for p in produtos[:6] %}
+            <div class="mini-row">
+                <div>
+                    <strong>{{ p.nome }}</strong>
+                    <small>Código {{ p.codigo_barras or 'não informado' }}</small>
+                </div>
+                <span class="status-pill {% if p.quantidade|int <= 5 %}warning{% else %}success{% endif %}">{{ p.quantidade|int }} un.</span>
+            </div>
+            {% else %}
+            <div class="empty-state compact">
+                <p>Nenhum produto cadastrado.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+<div class="panel table-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">DADOS</span>
+            <h3>Produtos</h3>
+        </div>
+        <a href="{{ url_for('produto') }}" class="secondary-action">+ Novo produto</a>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Embalagem</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in produtos %}
+                <tr>
+                    <td>
+                        <strong>{{ p.nome }}</strong>
+                        <span class="cell-sub">{{ p.codigo_barras or 'Sem código de barras' }}</span>
+                    </td>
+                    <td>R$ {{ "%.2f"|format(p.preco|float) }}</td>
+                    <td>
+                        <strong>{{ p.quantidade|int }}</strong> un.</td>
+                    <td>{{ p.tipo_embalagem|capitalize }}</td>
+                    <td>
+                        <span class="status-pill {% if p.quantidade|int <= 5 %}warning{% else %}success{% endif %}">
+                            {% if p.quantidade|int <= 5 %}Atenção{% else %}Normal{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <span>▤</span>
+                            <p>Nenhum produto cadastrado.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="panel table-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">VENDAS</span>
+            <h3>Produtos vendidos</h3>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade vendida</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nome, quantidade in produtos_vendidos.items() %}
+                <tr>
+                    <td>
+                        <strong>{{ nome }}</strong>
+                    </td>
+                    <td>{{ quantidade|int }} un.</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2">Nenhuma venda registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>window.produtosVendidos = {{ produtos_vendidos|tojson }};</script><script src="{{ url_for('static', filename='js/graficos.js') }}"></script>{% endblock %}
